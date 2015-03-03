@@ -54,9 +54,8 @@ class FirstTask(MatStat):
 
 
 class SecondTask(MatStat):
-    def __init__(self, start_line, end_line, kvantil=1.65, t=1.990):
+    def __init__(self, start_line, end_line, t=1.671):
         MatStat.__init__(self, end_line - start_line, start_line, end_line)
-        self.kvantil = kvantil
         self.t = t
 
         self.left_result_t = 0
@@ -75,8 +74,14 @@ class SecondTask(MatStat):
                 elif self.dictionary[str(i)][0] == '2':
                     women_benefits.append(self.dictionary[str(i)][2])
 
+        print "number of men with benefits: ", len(men_benefits)
+        print "number of women with benefits: ", len(women_benefits)
+
         middle_x = float(sum([int(i) for i in men_benefits])) / len(men_benefits)
         middle_y = float(sum([int(i) for i in women_benefits])) / len(women_benefits)
+
+        print "men middle: ", middle_x
+        print "women middle: ", middle_y
 
         x_dispersion = sqrt((1. / (len(men_benefits) - 1)) *
                             sum([(int(i) - middle_x) ** 2 for i in men_benefits]))
@@ -84,9 +89,14 @@ class SecondTask(MatStat):
         y_dispersion = sqrt((1. / (len(women_benefits) - 1)) *
                             sum([(int(i) - middle_y) ** 2 for i in women_benefits]))
 
+        print "dispersion x: ", x_dispersion
+        print "dispersion y: ", y_dispersion
+
         s = sqrt(float((len(men_benefits) - 1) *
                        (x_dispersion ** 2) + (len(women_benefits) - 1) *
                        (y_dispersion ** 2)) / (len(men_benefits) + len(women_benefits) - 2))
+
+        print "normal dispersion: ", s
 
         self.left_result_t = (middle_x - middle_y) - self.t * s *\
                                                 sqrt(float(len(men_benefits) + len(women_benefits)) /
@@ -100,7 +110,7 @@ class SecondTask(MatStat):
 class ThirdTask(MatStat):
     def __init__(self, start_line, end_line):
         MatStat.__init__(self, end_line - start_line, start_line, end_line)
-        self.number_of_lines = end_line - start_line
+        self.number_of_lines = end_line - start_line + 1
         self.left_result = 0
         self.right_result = 0
         self.xi_2 = 0
@@ -118,32 +128,39 @@ class ThirdTask(MatStat):
     def third_task(self):
 
         def frequency(lambda_element, sum_gender):
-            return int((float(lambda_element * sum_gender) / self.number_of_lines) + 0.5)
+            return float(lambda_element) * float(sum_gender) / self.number_of_lines
 
         men = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         women = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
         for i in xrange(self.start_line, self.end_line + 1):
             if self.dictionary[str(i)][0] == '1':
-                for k in xrange(5):
-                    if self.dictionary[str(i)][1] == str(k + 1):
-                        men[k + 1] += 1
+                for k in xrange(1, 6):
+                    if self.dictionary[str(i)][1] == str(k):
+                        men[k] += 1
             else:
-                for k in xrange(5):
-                    if self.dictionary[str(i)][1] == str(k + 1):
-                        women[k + 1] += 1
+                for k in xrange(1, 6):
+                    if self.dictionary[str(i)][1] == str(k):
+                        women[k] += 1
 
         sum_men = sum([men[i] for i in xrange(1, 6)])
         sum_women = sum(women[i] for i in xrange(1, 6))
 
-        freq_men = {i: frequency(men[i] + women[i], sum_men) for i in xrange(1, 6)}
-        freq_women = {i: frequency(men[i] + women[i], sum_women) for i in xrange(1, 6)}
+        ThirdTask.print_table(men, women, sum_men, sum_women)
 
-        self.xi_2 = 0
-        for i in xrange(1, 6):
-            self.xi_2 += float((men[i] - freq_men[i]) * (men[i] - freq_men[i])) / freq_men[i]
-            self.xi_2 += float((women[i] - freq_women[i]) * (women[i] - freq_women[i])) / freq_women[i]
+        freq_men = {i: frequency((men[i] + women[i]), sum_men) for i in xrange(1, 6)}
+        freq_women = {i: frequency((men[i] + women[i]), sum_women) for i in xrange(1, 6)}
+        sum_freq_men = sum([freq_men[i] for i in xrange(1, 6)])
+        sum_freq_women = sum([freq_women[i] for i in xrange(1, 6)])
 
+        ThirdTask.print_table(freq_men, freq_women, sum_freq_men, sum_freq_women)
+
+        table_xi_men = [(float(men[i] - freq_men[i]) ** 2) / freq_men[i] for i in xrange(1, 6)]
+        table_xi_women = [(float(women[i] - freq_women[i]) ** 2) / freq_women[i] for i in xrange(1, 6)]
+
+        for i in xrange(5):
+            print table_xi_men[i], " ", table_xi_women[i]
+        self.xi_2 = sum(table_xi_men) + sum(table_xi_women)
         return self.xi_2
 
 
@@ -151,9 +168,9 @@ def main():
     start_line = 2601
     end_line = 3000
 
-    task2 = SecondTask(start_line, end_line)
-    task2.read_file(task2.filename)
-    task2.print_second_task()
+    task3 = ThirdTask(start_line, end_line)
+    task3.read_file(task3.filename)
+    task3.print_third_task()
 
 
 if __name__ == '__main__':
